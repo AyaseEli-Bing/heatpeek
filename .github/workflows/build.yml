@@ -1,0 +1,45 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Toolchain
+        run: |
+          xcode-select -p
+          swift --version
+
+      - name: Build
+        run: make build
+
+      - name: Unit tests
+        run: swift test
+
+      - name: Bundle app
+        run: make app
+
+      - name: Selftest
+        run: ./scripts/selftest.sh .build/release/heatpeek
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: '*.md'
+
+      - name: Shell syntax
+        run: |
+          bash -n scripts/selftest.sh
+          bash -n scripts/make-app.sh
