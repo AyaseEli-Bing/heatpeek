@@ -1,11 +1,13 @@
 # heatpeek
 
 A menu bar readout of what a Mac is *feeling*: SoC temperature, GPU utilization,
-and GPU power.
+GPU power, and fan speed.
 
 ```text
-55°  38%  1.9W
+55°  38%  1.9W  2506r
 ```
+
+The temperature turns red at a configurable threshold (85 °C by default).
 
 Zero dependencies: no package manager, no bundled libraries, no build step
 beyond `swift build`. Every figure comes from the kernel through IOKit, so
@@ -41,12 +43,13 @@ xattr -dr com.apple.quarantine dist/HeatPeek.app
 
 ## Use
 
-Run the app; it lives in the menu bar with no Dock icon. The three fields are
-hottest sensor, GPU utilization, and GPU power. A source that is unavailable
-renders as `--` and explains itself in the menu.
+Run the app; it lives in the menu bar with no Dock icon. The four fields are
+hottest sensor, GPU utilization, GPU power, and fan speed. A source that is
+unavailable renders as `--` and explains itself in the menu.
 
-Click the item for the eight hottest sensors, GPU figures, the refresh
-interval (1/2/5/10 s), and quit.
+Click the item for the eight hottest sensors, GPU figures, per-fan RPM, the
+refresh interval (1/2/5/10 s), and the warning threshold (80/85/90/95/100 °C,
+or never).
 
 The same readings are available for scripts:
 
@@ -56,11 +59,13 @@ temperature  max 56.8°C  (PMU tdev2)
 temperature  avg 46.7°C  (44 sensors)
 gpu          utilization 80%
 gpu          power 1.57W
+fan          Fan 1 2502 RPM
 ```
 
 ```bash
 $ heatpeek --once --json
 {
+  "fans" : [ { "name" : "Fan 1", "rpm" : 2506.19580078125 } ],
   "gpuPowerWatts" : 1.6341884174007515,
   "gpuUtilizationPercent" : 67,
   "temperatures" : [ { "celsius" : 51.64, "sensor" : "PMU tdie14" } ],
@@ -79,6 +84,7 @@ $ heatpeek --once --json
 | Temperature | `IOHIDEventSystemClient*`, usage page `0xff00` / usage `0x0005`, event type 15 | user |
 | GPU utilization | `IOAccelerator` registry property `PerformanceStatistics` | user |
 | GPU power | `IOReport` group `Energy Model`, channel `GPU Energy` | user |
+| Fan speed | `AppleSMC` user client, keys `F0Ac`…`F5Ac` | user |
 
 The HID and IOReport entry points have no public headers. heatpeek resolves
 them with `dlopen`/`dlsym` rather than shipping a private bridging header, so
@@ -89,15 +95,22 @@ a single "CPU temperature", because Apple publishes no such thing on Apple
 Silicon: the sensors are named `PMU tdie*` and `PMU tdev*`, and which one
 tracks the load changes with workload.
 
+Fan speed is read through the public `IOConnectCallStructMethod`, and the
+`flt ` payload is **little-endian** IEEE-754. Decoding it big-endian turns
+2530 RPM into `7.3e-36`, which is the kind of bug that reads as "the fan is
+stopped" for weeks.
+
 ## Known limits
 
 - **No CPU power.** On M4 the `mJ` counters in `Energy Model` (`CPU Energy`,
-  `ECPU*`, `PCPU*`, `ANE`, `DRAM`) stay a static snapshot when polled, while
-  only the `nJ` `GPU Energy` channel advances. Getting the CPU figure needs a
-  stream callback this project does not implement yet.
-- **Fan speed is not shown.** `F0Ac` is readable, but on the test machine it
-  reported 0 RPM even after a 10-thread load pushed the hottest sensor to
-  77 °C, so it would read as a broken widget.
+  `ECPU0…5`, `PCPU0…3`, `ANE`, `DRAM`) stay a static snapshot when polled,
+  while only the `nJ` `GPU Energy` channel advances. Getting the CPU figure
+  needs a stream callback this project does not implement yet.
+- **The fan reads 0 RPM at idle, for a long time.** On the test machine 10
+  busy threads held 0 RPM while the hottest sensor climbed from 52 °C to
+  68 °C over 100 s, then it spun up to ~2500 RPM. That is the machine's
+  thermal policy, not a missing reading — values outside `0…15000` are
+  discarded.
 - **GPU utilization is not comparable with Activity Monitor.** The kernel
   counter includes window-server work, so an idle desktop can report 60–80 %.
   Treat it as a trend, not a percentage of "your" work.

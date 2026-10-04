@@ -3,10 +3,16 @@ import Foundation
 public actor Sampler {
     private let temperature: TemperatureReader
     private let energy: EnergyReader
+    private let fan: FanReader
 
-    public init(temperature: TemperatureReader = .init(), energy: EnergyReader = .init()) {
+    public init(
+        temperature: TemperatureReader = .init(),
+        energy: EnergyReader = .init(),
+        fan: FanReader = .init()
+    ) {
         self.temperature = temperature
         self.energy = energy
+        self.fan = fan
     }
 
     public func sample(now: Date = .now) async -> Snapshot {
@@ -29,11 +35,17 @@ public actor Sampler {
         case .pending: break
         }
 
+        let fans = await fan.read()
+        if fans.isEmpty {
+            unavailable["fan"] = await fan.reasonIfUnavailable() ?? "no SMC fan keys"
+        }
+
         let snapshot = Snapshot(
             timestamp: now,
             temperatures: readings,
             gpuUtilizationPercent: utilization?.percent,
             gpuPowerWatts: watts,
+            fans: fans,
             unavailable: unavailable
         )
         Log.sampler.debug("sample — sensors=\(readings.count, privacy: .public) gpu=\(utilization?.percent ?? -1, privacy: .public) watts=\(watts ?? -1, privacy: .public)")

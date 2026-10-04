@@ -1,5 +1,17 @@
 import Foundation
 
+/// One field of the menu bar readout. The warning flag lives here, not in the UI, so the
+/// threshold decision is testable without AppKit.
+public struct TitleSegment: Sendable, Equatable {
+    public let text: String
+    public let isWarning: Bool
+
+    public init(text: String, isWarning: Bool = false) {
+        self.text = text
+        self.isWarning = isWarning
+    }
+}
+
 public enum Formatting {
     public static func celsius(_ value: Double) -> String {
         "\(Int(value.rounded()))°"
@@ -13,12 +25,26 @@ public enum Formatting {
         value >= 10 ? "\(Int(value.rounded()))W" : "\(String(format: "%.1f", value))W"
     }
 
-    /// A missing source is rendered as `--` so the menu bar title keeps a stable shape.
-    public static func menuBarTitle(_ snapshot: Snapshot) -> String {
-        let temp = snapshot.maxTemperature.map { celsius($0.celsius) } ?? "--"
-        let gpu = snapshot.gpuUtilizationPercent.map(percent) ?? "--"
-        let power = snapshot.gpuPowerWatts.map(watts) ?? "--"
-        return "\(temp)  \(gpu)  \(power)"
+    public static func rpm(_ value: Double) -> String {
+        "\(Int(value.rounded()))r"
+    }
+
+    /// A missing source renders as `--` so the readout keeps a stable shape.
+    public static func titleSegments(_ snapshot: Snapshot, warnCelsius: Double? = nil) -> [TitleSegment] {
+        let temperature = snapshot.maxTemperature
+        let hot = warnCelsius.flatMap { threshold in
+            temperature.map { $0.celsius >= threshold }
+        } ?? false
+        return [
+            TitleSegment(text: temperature.map { celsius($0.celsius) } ?? "--", isWarning: hot),
+            TitleSegment(text: snapshot.gpuUtilizationPercent.map(percent) ?? "--"),
+            TitleSegment(text: snapshot.gpuPowerWatts.map(watts) ?? "--"),
+            TitleSegment(text: snapshot.maxFanRPM.map(rpm) ?? "--"),
+        ]
+    }
+
+    public static func menuBarTitle(_ snapshot: Snapshot, warnCelsius: Double? = nil) -> String {
+        titleSegments(snapshot, warnCelsius: warnCelsius).map(\.text).joined(separator: "  ")
     }
 
     public static func json(_ snapshot: Snapshot) throws -> String {
@@ -41,6 +67,9 @@ public enum Formatting {
         }
         if let power = snapshot.gpuPowerWatts {
             lines.append(row("gpu", "power \(String(format: "%.2f", power))W"))
+        }
+        for fan in snapshot.fans {
+            lines.append(row("fan", "\(fan.name) \(String(format: "%.0f", fan.rpm)) RPM"))
         }
         for (source, reason) in snapshot.unavailable.sorted(by: { $0.key < $1.key }) {
             lines.append(row(source, "unavailable: \(reason)"))

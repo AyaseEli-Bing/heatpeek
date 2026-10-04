@@ -76,7 +76,7 @@ else
 fi
 
 check "every documented key present" \
-  "set(['timestamp','temperatures','gpuUtilizationPercent','gpuPowerWatts','unavailable']) <= set(d)" "$JSON"
+  "set(['timestamp','temperatures','gpuUtilizationPercent','gpuPowerWatts','fans','unavailable']) <= set(d)" "$JSON"
 check "timestamp is ISO8601" \
   "len(d['timestamp']) >= 20 and d['timestamp'][4] == '-'" "$JSON"
 check "temperatures entries have sensor+celsius" \
@@ -103,6 +103,10 @@ check "GPU power positive and sane" \
   "d['gpuPowerWatts'] is None or 0 < d['gpuPowerWatts'] < 100" "$JSON"
 check "GPU power is not a static snapshot" \
   "d['gpuPowerWatts'] is not None" "$JSON"
+check "fan RPM, when present, is in 0..15000" \
+  "all(0 <= f['rpm'] <= 15000 for f in d['fans'])" "$JSON"
+check "fan keys are named Fan N" \
+  "all(f['name'].startswith('Fan ') for f in d['fans'])" "$JSON"
 
 echo
 echo "[4] cross-check against ioreg"

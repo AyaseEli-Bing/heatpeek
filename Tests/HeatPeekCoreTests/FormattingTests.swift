@@ -16,8 +16,8 @@ final class FormattingTests: XCTestCase {
         )
     }
 
-    func testMenuBarTitleKeepsThreeFields() {
-        XCTAssertEqual(Formatting.menuBarTitle(snapshot()), "73°  68%  3.4W")
+    func testMenuBarTitleHasFourFields() {
+        XCTAssertEqual(Formatting.menuBarTitle(snapshot()), "73°  68%  3.4W  --")
     }
 
     func testMenuBarTitlePlaceholdersForMissingSources() {
@@ -28,7 +28,7 @@ final class FormattingTests: XCTestCase {
             gpuPowerWatts: nil,
             unavailable: ["temperature": "no HID temperature services"]
         )
-        XCTAssertEqual(Formatting.menuBarTitle(partial), "--  12%  --")
+        XCTAssertEqual(Formatting.menuBarTitle(partial), "--  12%  --  --")
     }
 
     func testWattsSwitchesPrecisionAtTen() {

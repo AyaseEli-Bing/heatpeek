@@ -15,6 +15,7 @@ public struct Snapshot: Codable, Sendable, Equatable {
     public let temperatures: [TemperatureReading]
     public let gpuUtilizationPercent: Double?
     public let gpuPowerWatts: Double?
+    public let fans: [FanReader.Fan]
     public let unavailable: [String: String]
 
     public init(
@@ -22,16 +23,20 @@ public struct Snapshot: Codable, Sendable, Equatable {
         temperatures: [TemperatureReading],
         gpuUtilizationPercent: Double?,
         gpuPowerWatts: Double?,
+        fans: [FanReader.Fan] = [],
         unavailable: [String: String]
     ) {
         self.timestamp = timestamp
         self.temperatures = temperatures
         self.gpuUtilizationPercent = gpuUtilizationPercent
         self.gpuPowerWatts = gpuPowerWatts
+        self.fans = fans
         self.unavailable = unavailable
     }
 
     public var maxTemperature: TemperatureReading? { temperatures.max(by: { $0.celsius < $1.celsius }) }
+
+    public var maxFanRPM: Double? { fans.map(\.rpm).max() }
 
     public var averageTemperature: Double? {
         guard !temperatures.isEmpty else { return nil }
@@ -43,6 +48,7 @@ public struct Snapshot: Codable, Sendable, Equatable {
         temperatures: [],
         gpuUtilizationPercent: nil,
         gpuPowerWatts: nil,
+        fans: [],
         unavailable: [:]
     )
 }
