@@ -95,6 +95,12 @@ a single "CPU temperature", because Apple publishes no such thing on Apple
 Silicon: the sensors are named `PMU tdie*` and `PMU tdev*`, and which one
 tracks the load changes with workload.
 
+Each HID sensor costs about a millisecond of IPC, so a full sweep is ~50 ms —
+which made a 2 s menu bar tick the app's entire CPU cost. Temperature is
+therefore sampled at most every 5 s (`SampleCache`) while GPU and fan follow
+the interval you pick. Measured on M4: 51 ms on a refresh tick, 4–5 ms on a
+cached one.
+
 Fan speed is read through the public `IOConnectCallStructMethod`, and the
 `flt ` payload is **little-endian** IEEE-754. Decoding it big-endian turns
 2530 RPM into `7.3e-36`, which is the kind of bug that reads as "the fan is
