@@ -75,7 +75,9 @@ $ heatpeek --once --json
 ```
 
 `--once` exits 0 even when a source is missing, so a dashboard can tell
-"unavailable" apart from "heatpeek crashed".
+"unavailable" apart from "heatpeek crashed". The JSON shape does not depend on
+the hardware: a source that cannot be read is `null`, and the reason appears
+under `unavailable`.
 
 ## What it reads
 

@@ -51,4 +51,20 @@ public struct Snapshot: Codable, Sendable, Equatable {
         fans: [],
         unavailable: [:]
     )
+
+    private enum CodingKeys: String, CodingKey {
+        case timestamp, temperatures, gpuUtilizationPercent, gpuPowerWatts, fans, unavailable
+    }
+
+    /// Synthesized encoding drops nil keys, which would make the `--json` shape depend on the
+    /// hardware. Encoding explicitly keeps every documented key present, as null when absent.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(temperatures, forKey: .temperatures)
+        try container.encode(gpuUtilizationPercent, forKey: .gpuUtilizationPercent)
+        try container.encode(gpuPowerWatts, forKey: .gpuPowerWatts)
+        try container.encode(fans, forKey: .fans)
+        try container.encode(unavailable, forKey: .unavailable)
+    }
 }

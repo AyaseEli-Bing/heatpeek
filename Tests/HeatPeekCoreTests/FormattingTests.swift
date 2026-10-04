@@ -59,6 +59,26 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(decoded, snapshot())
     }
 
+    func testJSONKeepsEveryDocumentedKeyWhenSourcesAreAbsent() throws {
+        let bare = Snapshot(
+            timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+            temperatures: [],
+            gpuUtilizationPercent: nil,
+            gpuPowerWatts: nil,
+            fans: [],
+            unavailable: ["gpu": "IOAccelerator PerformanceStatistics unavailable"]
+        )
+        let json = try Formatting.json(bare)
+        for key in ["timestamp", "temperatures", "gpuUtilizationPercent", "gpuPowerWatts", "fans", "unavailable"] {
+            XCTAssertTrue(json.contains("\"\(key)\""), "missing key \(key) in:\n\(json)")
+        }
+        XCTAssertTrue(json.contains("\"gpuPowerWatts\" : null"), "nil must encode as null, not vanish:\n\(json)")
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        XCTAssertEqual(try decoder.decode(Snapshot.self, from: Data(json.utf8)), bare)
+    }
+
     func testPlainTextListsUnavailableSources() {
         let partial = Snapshot(
             timestamp: .now,
