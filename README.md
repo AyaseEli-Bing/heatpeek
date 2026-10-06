@@ -139,6 +139,13 @@ make selftest-full  # adds a 25 s load test that asserts temperatures rise
 (rather than fails) hardware assertions on machines without sensors, so the
 same script runs on a CI runner.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the build-and-verify loop. Tasks marked
+[`good first issue`](https://github.com/AyaseEli-Bing/heatpeek/labels/good%20first%20issue) are
+self-contained and verifiable without special hardware — comment on one to claim it before you
+start.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
