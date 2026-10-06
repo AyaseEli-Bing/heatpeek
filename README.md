@@ -9,6 +9,8 @@ GPU power, and fan speed.
 
 The temperature turns red at a configurable threshold (85 °C by default).
 
+<img src="assets/heatpeek-menu.png" width="300" alt="The heatpeek menu: the eight hottest sensors with their readings, GPU utilization and power, fan RPM, then the refresh interval, warning threshold, refresh and quit items.">
+
 Zero dependencies: no package manager, no bundled libraries, no build step
 beyond `swift build`. Every figure comes from the kernel through IOKit, so
 nothing shells out to `powermetrics` or `nettop`.
@@ -32,6 +34,9 @@ covers the sensor side, which needs different (and partly private) APIs.
 make app        # release build -> dist/HeatPeek.app (ad-hoc signed)
 swift build     # debug build -> .build/debug/heatpeek
 ```
+
+Prebuilt: [Releases](https://github.com/AyaseEli-Bing/heatpeek/releases) carries
+`HeatPeek-<version>-macos-apple-silicon.zip` with a `SHA256SUMS` next to it. Apple Silicon only.
 
 Because a free Apple ID cannot issue a Developer ID certificate, releases are
 ad-hoc signed and cannot be notarized. The first launch of a downloaded build
