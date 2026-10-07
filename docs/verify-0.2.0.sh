@@ -24,9 +24,20 @@ swift build -c release > /tmp/hp-build.log 2>&1 \
 echo
 echo "[A] 功能 A — --json 缺 --once"
 
+# AC-01 needs a watchdog: the pre-fix behaviour was to start the menu bar item and
+# never return, so a plain call would hang this script instead of failing it.
+# `timeout` is absent on the GitHub runner (127 under `set -e`), hence the probe.
+if command -v timeout > /dev/null 2>&1; then
+  guard() { timeout "$1" "$BIN" "${@:2}"; }
+else
+  echo "  note  timeout unavailable -- AC-01 watchdog degraded, the hang case will"
+  echo "        block rather than fail (scripts/selftest.sh keeps the CI gate honest)"
+  guard() { "$BIN" "${@:2}"; }
+fi
+
 # AC-01: 必须立即返回、不启动 GUI。timeout 兜住「挂住」这个回归，124 即失败。
 set +e
-OUT=$(timeout 5 "$BIN" --json 2>&1)
+OUT=$(guard 5 --json 2>&1)
 CODE=$?
 set -e
 
@@ -58,7 +69,7 @@ echo
 echo "[A] 无回归 — 既有用例"
 
 set +e
-timeout 5 "$BIN" --nonsense > /dev/null 2>&1
+guard 5 --nonsense > /dev/null 2>&1
 NONSENSE=$?
 set -e
 if [ "$NONSENSE" = "64" ]; then
@@ -68,7 +79,7 @@ else
 fi
 
 set +e
-JSON=$(timeout 10 "$BIN" --once --json 2>&1)
+JSON=$(guard 10 --once --json 2>&1)
 JSONCODE=$?
 set -e
 if [ "$JSONCODE" = "0" ]; then

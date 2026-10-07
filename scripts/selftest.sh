@@ -109,8 +109,11 @@ else
 fi
 
 # Repeated flags stay idempotent rather than tripping the combination guard.
+# No `timeout` here: it is absent on the GitHub runner (which fails with 127 under
+# `set -e`), and a repeated --json cannot hang anyway -- the guard is what keeps a
+# lone --json from reaching the GUI, and that case is asserted separately above.
 set +e
-timeout 10 "$BIN" --once --json --json > /dev/null 2>&1
+"$BIN" --once --json --json > /dev/null 2>&1
 CODE=$?
 set -e
 if [ "$CODE" = "0" ]; then
