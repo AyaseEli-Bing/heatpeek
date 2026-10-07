@@ -99,24 +99,6 @@
 
 **这不是缺陷，是所有 CLI 的通行做法**（`git --help --badflag` 同样返回 0），且 0.1.0 的 `--help` 本就退出 0，改动它会破坏兼容性。故定为P1 契约固化项：把「碰巧如此」升级为「契约如此」，并由 selftest 断言锁住。若将来要改，必须走 Spec 变更流程。
 
-## 12.1 文档一致性修正（2026-10-08 补）
-
-§13 原声明的影响范围遗漏了本次流程改进产出的文件。实际改动全集为：
-
-| 文件 | 归属 | 性质 |
-|------|------|------|
-| `Sources/heatpeek/main.swift` | 功能 A | 功能代码 |
-| `Sources/HeatPeekCore/Formatting.swift` | 功能 B | 功能代码 |
-| `Tests/HeatPeekCoreTests/ThresholdTests.swift` | 功能 B | 功能代码 |
-| `scripts/selftest.sh` | 功能 A | 门禁脚手架 |
-| `README.md` / `CHANGELOG.md` | A + B | 文档（同一 commit 内同步，CONTRIBUTING 要求） |
-| `docs/spec-0.2.0.md` | 流程 | 本文档 |
-| `docs/verify-0.2.0.sh` | 流程 | 一次性验收工具，与长期资产 `scripts/selftest.sh` 分工不同 |
-| `docs/decisions/OPEN-DECISIONS.md` | 流程 | 未决登记册 |
-| `scripts/emoji-scan.pl` | 流程 | 落实团队 P0-1 emoji 门禁，因 BSD grep 无 `-P` |
-
-**另需注意两个数字口径不同**：`make test` 输出的 `passed=N` 是 **selftest 断言数**，`swift test` 输出的 `Executed N tests` 是 **XCTest 用例数**。0.2.0 交付时分别为 20 与 25，PR 描述中引用需注明口径，否则会低估测试覆盖。
-
 ## 10. 边界与约束
 
 - 最低 macOS 13，Apple Silicon（Intel 传感器 key 不同，未验证）
@@ -173,3 +155,31 @@ make app && open dist/HeatPeek.app   # 菜单里Warn at 选 80°C 观察 ▲
 | 日期 | 变更内容 | 原因 | 影响范围 |
 |------|---------|------|---------|
 | 2026-10-08 | 初版，锁定 A+B 两功能范围与验收标准 | 用户确认「按你说的做」 | main.swift / Formatting.swift / 两处测试 / README / CHANGELOG |
+| 2026-10-08 | 补AC-11（flag 优先级契约）与 §14 文档一致性修正 | 独立验收发现契约未锁定、Spec 自身数字与章节序有误 | selftest.sh / 本文档 |
+
+## 14. 文档一致性修正（2026-10-08 独立验收后补）
+
+§13 原声明的影响范围遗漏了本次流程改进产出的文件。实际改动全集为：
+
+| 文件 | 归属 | 性质 |
+|------|------|------|
+| `Sources/heatpeek/main.swift` | 功能 A | 功能代码 |
+| `Sources/HeatPeekCore/Formatting.swift` | 功能 B | 功能代码 |
+| `Tests/HeatPeekCoreTests/ThresholdTests.swift` | 功能 B | 功能代码 |
+| `scripts/selftest.sh` | 功能 A + AC-11 | 门禁脚手架 |
+| `README.md` / `CHANGELOG.md` | A + B | 文档（同一 commit 内同步，CONTRIBUTING 要求） |
+| `docs/spec-0.2.0.md` | 流程 | 本文档 |
+| `docs/verify-0.2.0.sh` | 流程 | 一次性验收工具，与长期资产 `scripts/selftest.sh` 分工不同 |
+| `docs/decisions/OPEN-DECISIONS.md` | 流程 | 未决登记册 |
+| `scripts/emoji-scan.pl` | 流程 | 落实团队 P0-1 emoji 门禁，因 BSD grep 无 `-P` |
+
+### 引用测试数字时必须注明口径
+
+两个数字来自**不同工具**，含义完全不同：
+
+| 数字 | 来源 | 含义 |
+|------|------|------|
+| `passed=23` | `make test` → `scripts/selftest.sh` | **shell 断言条数**（CLI 契约、JSON 结构、量程合理性、ioreg 交叉校验） |
+| `Executed 25 tests` | `make test` → `swift test` | **XCTest 用例数**（Formatting / SampleCache / Threshold 单元测试） |
+
+0.2.0 交付时分别为 **23 与 25**。PR 描述中引用任一数字都须注明口径，否则会低估测试覆盖。
