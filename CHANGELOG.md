@@ -13,6 +13,10 @@ Initial release.
 - Click-to-open menu listing the eight hottest sensors, GPU figures, per-fan
   RPM, the refresh interval, and quit.
 - `--once` and `--json` one-shot modes for scripting and CI.
+- `--version` prints the version; `--help` (or `-h`) prints the usage text. Both
+  exit 0 without taking a reading.
+- An unknown argument writes `heatpeek: unknown argument` and the usage text to
+  stderr and exits 64 (`EX_USAGE`), rather than falling back to the menu bar item.
 - `scripts/selftest.sh` validates the CLI contract, JSON structure, plausibility,
   agreement with `ioreg`, and — with `--full` — that temperatures actually rise
   under load.
