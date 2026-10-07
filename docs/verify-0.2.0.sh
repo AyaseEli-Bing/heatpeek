@@ -129,15 +129,24 @@ fi
 
 echo
 echo "[docs] markdownlint"
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
-  if markdownlint-cli2 README.md CHANGELOG.md docs/spec-0.2.0.md > /tmp/hp-lint.log 2>&1; then
-    ok "markdownlint 通过"
+LINT=""
+for cand in markdownlint-cli2 markdownlint; do
+  if command -v "$cand" >/dev/null 2>&1; then LINT=$cand; break; fi
+done
+# WorkBuddy 管理的 node workspace 里装过 markdownlint-cli2，CI 用 GitHub Action
+if [ -z "$LINT" ] && [ -x /Users/bing1111/.workbuddy/binaries/node/versions/22.22.2-6/bin/npx ]; then
+  LINT="/Users/bing1111/.workbuddy/binaries/node/versions/22.22.2-6/bin/npx --no-install markdownlint-cli2"
+fi
+if [ -n "$LINT" ]; then
+  # shellcheck disable=SC2086
+  if $LINT README.md CHANGELOG.md > /tmp/hp-lint.log 2>&1; then
+    ok "markdownlint 通过（$(grep -oE '[0-9]+ issues?' /tmp/hp-lint.log | tail -1 || echo '0 issues')）"
   else
     bad "markdownlint 失败"
     tail -20 /tmp/hp-lint.log | sed 's/^/        /'
   fi
 else
-  echo "  skip  markdownlint 未安装（CI 会跑，README 与 CHANGELOG 须过MD 以外默认规则）"
+  echo "  skip  markdownlint 不可用（CI docs job 会把关）"
 fi
 
 echo
