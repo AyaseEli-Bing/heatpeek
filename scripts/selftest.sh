@@ -63,6 +63,16 @@ else
   bad "unknown flag exit code was $CODE, expected 64"
 fi
 
+set +e
+"$BIN" --json > /dev/null 2>&1
+CODE=$?
+set -e
+if [ "$CODE" = "64" ]; then
+  ok "--json without --once exits 64"
+else
+  bad "--json without --once exit code was $CODE, expected 64 (--json requires --once)"
+fi
+
 ONCE=$("$BIN" --once)
 if printf '%s' "$ONCE" | grep -Eq 'temperature|unavailable|no sensor data'; then
   ok "--once prints a human-readable readout"

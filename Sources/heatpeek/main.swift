@@ -51,6 +51,13 @@ guard let options = parseOptions(arguments) else {
     exit(64)
 }
 
+// --json without --once would otherwise fall through to the menu bar item and never return,
+// so a script would hang instead of failing.
+if options.json && !options.once {
+    FileHandle.standardError.write(Data("heatpeek: --json requires --once\n\n\(CLI.help)\n".utf8))
+    exit(64)
+}
+
 if options.once {
     let sampler = Sampler()
     let snapshot = await sampler.samplePair(firstDelay: 1)

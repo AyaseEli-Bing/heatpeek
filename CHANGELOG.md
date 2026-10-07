@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- The temperature warning now carries a second, non-colour channel: the field
+  grows a `▲` when the reading reaches the threshold. Roughly 8 % of men have a
+  red-green colour vision deficiency, and macOS can disable colour cues outright
+  under Accessibility → Display → Differentiate without colour — in both cases
+  the red field was indistinguishable from a normal one. The colour is kept as
+  the redundant channel and the field widens by one character on a threshold
+  crossing. The other three fields are unchanged, and `--json` keeps its exact
+  key set: `isWarning` and the marker are menu bar concerns, not data. Verified
+  on M4 (Mac16,1) / macOS 27.
 - The usage text now advertises `-h` beside `--help`. The alias already worked and
   was documented in the README, but `--help` never mentioned it, so a user could
   only discover it by reading the README.

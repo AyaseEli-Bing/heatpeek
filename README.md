@@ -5,9 +5,17 @@ GPU power, and fan speed.
 
 ```text
 55°  38%  1.9W  2506r
+▲91°  38%  1.9W  2506r
 ```
 
-The temperature turns red at a configurable threshold (85 °C by default).
+The temperature turns red at a configurable threshold (85 °C by default) **and**
+grows a `▲` in front of the reading. The marker is the primary cue and the colour
+is the redundant one: about 8 % of men have a red-green colour vision deficiency,
+and macOS can switch colour cues off entirely under
+Accessibility → Display → Differentiate without colour. Red alone would leave both
+groups with a menu bar that looks unchanged while the machine is overheating. The
+marker widens the field by one character, so the item shifts when the threshold is
+crossed — that jump is the state change being made visible.
 
 <img src="assets/heatpeek-menu.png" width="300" alt="The heatpeek menu: the eight hottest sensors with their readings, GPU utilization and power, fan RPM, then the refresh interval, warning threshold, refresh and quit items.">
 
@@ -130,6 +138,10 @@ stopped" for weeks.
   68 °C over 100 s, then it spun up to ~2500 RPM. That is the machine's
   thermal policy, not a missing reading — values outside `0…15000` are
   discarded.
+- **The warning is text, not an alarm.** `▲` marks the threshold crossing and
+  red repeats it, but heatpeek never notifies, beeps, or throttles: it is a
+  readout you have to be looking at. The GPU utilization, GPU power, and fan
+  fields carry no marker at all — only temperature has a threshold.
 - **GPU utilization is not comparable with Activity Monitor.** The kernel
   counter includes window-server work, so an idle desktop can report 60–80 %.
   Treat it as a trend, not a percentage of "your" work.
