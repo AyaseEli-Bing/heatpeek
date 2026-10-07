@@ -91,6 +91,31 @@
 | AC-08 | B | While 温度达任意值，`--json` 输出 key 集合**必须**与变更前完全一致 | P0 |
 | AC-09 | B | If 温度段携带 `▲`，`isWarning` 标志**必须**仍为 true（颜色通道保留） | P0 |
 | AC-10 | 全局 | While 提交前，`make test` **必须**输出 `failed=0` | P0 |
+| AC-11 | A | While 用户执行 `--help` / `-h` / `--version` 与任何其他 flag 的组合，系统**必须**打印 help 或版本并退出 0，**不得**进入参数校验 | P1 |
+
+### AC-11 补充说明（2026-10-08 由 QA 验收发现后补入）
+
+`main.swift` 中 help/version 的短路发生在 `parseOptions` **之前**，因此 `-h --json` 打印 help 并退出 0，`--json` 缺 `--once` 的校验不会执行到；同理 `--nonsense --help` 也退出 0，掩盖了未知参数。
+
+**这不是缺陷，是所有 CLI 的通行做法**（`git --help --badflag` 同样返回 0），且 0.1.0 的 `--help` 本就退出 0，改动它会破坏兼容性。故定为P1 契约固化项：把「碰巧如此」升级为「契约如此」，并由 selftest 断言锁住。若将来要改，必须走 Spec 变更流程。
+
+## 12.1 文档一致性修正（2026-10-08 补）
+
+§13 原声明的影响范围遗漏了本次流程改进产出的文件。实际改动全集为：
+
+| 文件 | 归属 | 性质 |
+|------|------|------|
+| `Sources/heatpeek/main.swift` | 功能 A | 功能代码 |
+| `Sources/HeatPeekCore/Formatting.swift` | 功能 B | 功能代码 |
+| `Tests/HeatPeekCoreTests/ThresholdTests.swift` | 功能 B | 功能代码 |
+| `scripts/selftest.sh` | 功能 A | 门禁脚手架 |
+| `README.md` / `CHANGELOG.md` | A + B | 文档（同一 commit 内同步，CONTRIBUTING 要求） |
+| `docs/spec-0.2.0.md` | 流程 | 本文档 |
+| `docs/verify-0.2.0.sh` | 流程 | 一次性验收工具，与长期资产 `scripts/selftest.sh` 分工不同 |
+| `docs/decisions/OPEN-DECISIONS.md` | 流程 | 未决登记册 |
+| `scripts/emoji-scan.pl` | 流程 | 落实团队 P0-1 emoji 门禁，因 BSD grep 无 `-P` |
+
+**另需注意两个数字口径不同**：`make test` 输出的 `passed=N` 是 **selftest 断言数**，`swift test` 输出的 `Executed N tests` 是 **XCTest 用例数**。0.2.0 交付时分别为 20 与 25，PR 描述中引用需注明口径，否则会低估测试覆盖。
 
 ## 10. 边界与约束
 

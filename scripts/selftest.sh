@@ -64,13 +64,59 @@ else
 fi
 
 set +e
-"$BIN" --json > /dev/null 2>&1
+ERR=$("$BIN" --json 2>&1 > /dev/null)
 CODE=$?
 set -e
 if [ "$CODE" = "64" ]; then
   ok "--json without --once exits 64"
 else
   bad "--json without --once exit code was $CODE, expected 64 (--json requires --once)"
+fi
+# The exit code alone does not prove the diagnostic: a bare "boom" would also exit 64.
+# AC-01 requires the reason and the usage text together.
+if printf '%s' "$ERR" | grep -q -- '--json requires --once'; then
+  ok "--json without --once explains itself on stderr"
+else
+  bad "--json without --once stderr missing the reason: $ERR"
+fi
+if printf '%s' "$ERR" | grep -q 'Usage:'; then
+  ok "--json without --once prints the usage text"
+else
+  bad "--json without --once stderr missing the usage text: $ERR"
+fi
+
+# AC-11: help and --version short-circuit before any validation, so they win even when
+# combined with a flag that would otherwise be rejected. Locked here because it is a
+# contract, not an accident — but changing it needs a Spec change, not a quiet edit.
+set +e
+"$BIN" -h --json > /dev/null 2>&1
+CODE=$?
+set -e
+if [ "$CODE" = "0" ]; then
+  ok "-h short-circuits --json validation"
+else
+  bad "-h with --json exited $CODE, expected 0 (help wins over validation)"
+fi
+
+set +e
+"$BIN" --version --nonsense > /dev/null 2>&1
+CODE=$?
+set -e
+if [ "$CODE" = "0" ]; then
+  ok "--version short-circuits unknown-flag rejection"
+else
+  bad "--version with --nonsense exited $CODE, expected 0 (version wins over validation)"
+fi
+
+# Repeated flags stay idempotent rather than tripping the combination guard.
+set +e
+timeout 10 "$BIN" --once --json --json > /dev/null 2>&1
+CODE=$?
+set -e
+if [ "$CODE" = "0" ]; then
+  ok "--json is idempotent and order independent"
+else
+  bad "--once --json --json exited $CODE, expected 0"
 fi
 
 ONCE=$("$BIN" --once)
