@@ -47,6 +47,12 @@ fi
 
 if "$BIN" --help | grep -q 'Usage:'; then ok "--help prints usage"; else bad "--help missing usage"; fi
 
+if "$BIN" --help | grep -q -- '(-h)'; then
+  ok "usage advertises the -h alias"
+else
+  bad "usage hides the -h alias that main.swift accepts"
+fi
+
 set +e
 "$BIN" --nonsense > /dev/null 2>&1
 CODE=$?

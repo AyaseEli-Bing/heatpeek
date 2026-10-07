@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## Unreleased
+
+- The usage text now advertises `-h` beside `--help`. The alias already worked and
+  was documented in the README, but `--help` never mentioned it, so a user could
+  only discover it by reading the README.
+
 ## 0.1.0
 
 Initial release.

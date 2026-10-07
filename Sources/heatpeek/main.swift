@@ -12,7 +12,7 @@ enum CLI {
           --once         print one reading and exit
           --json         machine-readable output (with --once)
           --version      print the version
-          --help         show this help
+          --help (-h)    show this help
 
         Exit status is 0 even when a source is unavailable; the reason is reported per source.
         """
