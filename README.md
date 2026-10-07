@@ -79,10 +79,12 @@ $ heatpeek --once --json
 }
 ```
 
+You can also check the version with `--version` or get help with `--help` (or `-h`).
+
 `--once` exits 0 even when a source is missing, so a dashboard can tell
-"unavailable" apart from "heatpeek crashed". The JSON shape does not depend on
-the hardware: a source that cannot be read is `null`, and the reason appears
-under `unavailable`.
+"unavailable" apart from "heatpeek crashed". An unknown argument prints the help text
+to stderr and exits 64. The JSON shape does not depend on the hardware: a source that
+cannot be read is `null`, and the reason appears under `unavailable`.
 
 ## What it reads
 
