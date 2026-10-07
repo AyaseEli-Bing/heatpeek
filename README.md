@@ -86,6 +86,12 @@ You can also check the version with `--version` or get help with `--help` (or `-
 to stderr and exits 64. The JSON shape does not depend on the hardware: a source that
 cannot be read is `null`, and the reason appears under `unavailable`.
 
+`--version` prints the version and `--help` (or `-h`) prints the usage text;
+both exit 0 without taking a reading. An unknown argument is the exception to
+the exit-0 rule: heatpeek writes `unknown argument` and the help text to stderr
+and exits 64 (`EX_USAGE`), so a mistyped flag fails loudly instead of printing a
+readout.
+
 ## What it reads
 
 | Field | Source | Privilege |
