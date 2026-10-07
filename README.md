@@ -98,6 +98,11 @@ the exit-0 rule: heatpeek writes `heatpeek: unknown argument` and the help text
 to stderr and exits 64 (`EX_USAGE`), so a mistyped flag fails loudly instead of
 printing a readout.
 
+`--json` is a one-shot format, so it is rejected the same way when `--once` is
+missing: heatpeek writes `heatpeek: --json requires --once` and the help text to
+stderr and exits 64 instead of starting the menu bar item. A script that asks for
+JSON therefore fails immediately rather than hanging on a GUI that never prints.
+
 ## What it reads
 
 | Field | Source | Privilege |

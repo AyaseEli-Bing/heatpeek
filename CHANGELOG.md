@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- `--json` without `--once` now writes `heatpeek: --json requires --once` and the
+  usage text to stderr and exits 64 (`EX_USAGE`). It previously started the menu
+  bar item and never returned, so a script asking for JSON hung instead of
+  failing. The usage text still describes `--json` as machine-readable output
+  with `--once`; only the enforcement is new.
 - The temperature warning now carries a second, non-colour channel: the field
   grows a `▲` when the reading reaches the threshold. Roughly 8 % of men have a
   red-green colour vision deficiency, and macOS can disable colour cues outright

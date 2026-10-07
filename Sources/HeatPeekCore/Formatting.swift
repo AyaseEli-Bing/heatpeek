@@ -13,6 +13,12 @@ public struct TitleSegment: Sendable, Equatable {
 }
 
 public enum Formatting {
+    /// Non-colour warning cue. Red alone fails for red-green colour deficiency and under
+    /// macOS "Differentiate without colour", so the text carries a second channel and the
+    /// colour stays as the redundant one. U+25B2, not an emoji: it has glyphs in the menu
+    /// bar font, so nothing falls back to a colour emoji and undoes the point.
+    public static let warningMarker = "\u{25B2}"
+
     public static func celsius(_ value: Double) -> String {
         "\(Int(value.rounded()))°"
     }
@@ -35,8 +41,11 @@ public enum Formatting {
         let hot = warnCelsius.flatMap { threshold in
             temperature.map { $0.celsius >= threshold }
         } ?? false
+        // Only the temperature can warn, so only the temperature takes the marker. The other
+        // three fields have no threshold of their own and a marker there would read as noise.
+        let reading = temperature.map { celsius($0.celsius) } ?? "--"
         return [
-            TitleSegment(text: temperature.map { celsius($0.celsius) } ?? "--", isWarning: hot),
+            TitleSegment(text: hot ? warningMarker + reading : reading, isWarning: hot),
             TitleSegment(text: snapshot.gpuUtilizationPercent.map(percent) ?? "--"),
             TitleSegment(text: snapshot.gpuPowerWatts.map(watts) ?? "--"),
             TitleSegment(text: snapshot.maxFanRPM.map(rpm) ?? "--"),
